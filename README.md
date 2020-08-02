@@ -1,68 +1,231 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Wonder Technical Challenge
 
-## Available Scripts
+## Run
 
-In the project directory, you can run:
+- Clone the repo to your local machine
+- Navigate to the project directory in your terminal
+- Run `node server.js`
 
-### `npm start`
+## Task
+Design a queue based messaging system with a many to many relationship between producers that write the messages and consumers that read the messages. When a reader requests to get messages, they are sent all the current messages from the queue, at this point all those messages are moved into a 'message session' unique to that reader and cannot be retrieved by other readers. The reader can mark an individual message to be permantly deleted from the database or clear all messages. If a reader does not take any action and a certain amount of time has transpired, all their unread messages are placed back into the start of the queue.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Scalability ideas 
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+- micro-service architecture
+ 
+- Seperate each message session into its own dedicated worker process responsible for keeping track of the remaining expiration time and
+merging unread messages back into the main message queue. 
 
-### `npm test`
+- Seperate the main message queue in to its own dedicated server
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Need a reliable database that can deal with a high volume of constant insertions and deletions
 
-### `npm run build`
+## React App
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This app is responsible for generating messages, sending them to the server and allowing the consumer to request all the queued messages from the server.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Node Server
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This server is responsible for receiving messages and placing them in a queue, moving messages to message sessions and deleting messages on confirmation and returning an individual reader's messages session.
 
-### `npm run eject`
+## Chrome Extension
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### This extension shows:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Total messages written
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- Total messages currently unread
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Total messages currently being read
 
-## Learn More
+- If the server is active
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## API documentation
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Retrieve an existing message session
 
-### Code Splitting
+`http://localhost:8000/api/message/pending/:id`
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+This endpoint is for retrieving a reader's current message session. An example
+use case would be retrieving a reader's message after a page refresh.
 
-### Analyzing the Bundle Size
+**method**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+`GET`
 
-### Making a Progressive Web App
+**params**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+`id: String, A valid reader id`
 
-### Advanced Configuration
+**response**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+Below are examples of the response depending on if it finds a valid session
+for the given reader id.
+```
+{
+  message: "No current message session"
+}
 
-### Deployment
+{
+  session: {
+    expiration: "2020-08-02T19:38:01.826Z"
+    messages: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+    readerId: "78ec73bb-4363-454f-93d1-bfe07b4d2158"
+  }
+}
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+### Create a message session
 
-### `npm run build` fails to minify
+`http://localhost:8000/api/message/list/:id`
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+This endpoint is for creating unique message session for a reader. A session 
+will not be created if the message queue is empty or a session already exists 
+with the given reader id.
+
+**method**
+
+`GET`
+
+**params**
+
+`id: String, A valid reader id`
+
+**response**
+
+Below are examples of successful and error responses.
+
+```
+{
+ messageList: [
+  {
+   message...
+  },
+  {
+   message...
+  },
+ ]
+}
+
+{
+ error: 'Some error occurred
+}
+
+```
+
+### Add a message to the queue
+
+`http://localhost:8000/api/message/submit`
+
+This endpoint is for adding a new message to the queue.
+
+**method**
+
+`POST`
+
+**body**
+
+`content: String, a message to add`
+
+**response**
+
+The response is a confirmation message with a unique message id.
+
+```
+{
+ message: Message sent! Confirmation ID: 75cc7fb2-dc6d-46ed-8222-86352184bd61
+}
+
+```
+
+### Process (delete) a message
+
+`http://localhost:8000/api/message/delete`
+
+This endpoint is for deleting a message. 
+
+**method**
+
+`DELETE`
+
+**body**
+
+`readerId: String, unique reader id`,
+`messageId: String, unique message id`,
+
+**response**
+
+The response is an updated array of messages, or an empty array
+if the reader's message session could not be found.
+
+```
+{
+ messageList: [
+  {
+   message...
+  },
+  {
+   message...
+  },
+ ]
+}
+
+```
+
+### Clear all current messages
+
+`http://localhost:8000/api/message/clear`
+
+This endpoint deletes the reader's current message session
+and permantly deletes all associated messages. 
+
+**method**
+
+`DELETE`
+
+**body**
+
+`readerId: String, unique reader id`,
+
+**response**
+
+The response is a confirmation message
+
+```
+{
+ message: 'Message session cleared'
+}
+```
+
+### Get app status
+
+`http://localhost:8000/api/status`
+
+This endpoint gets information about the current state of the app. 
+
+**method**
+
+`GET`
+
+**response**
+
+The response is a status object.
+
+```
+{
+ active: 'active',
+ totalMessages: 52,
+ totalReaders: 7,
+ availableMessages: 12
+}
+```
+
+### Error Handling
+
+Any time an error occurs a response is returned in the following format:
+
+```
+{
+ error: 'Some error message'
+}
+```
