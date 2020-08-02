@@ -75,7 +75,7 @@ for the given reader id.
 }
 ```
 
-### create a message session
+### Create a message session
 
 `http://localhost:8000/api/message/list/:id`
 
@@ -113,7 +113,7 @@ Below are examples of successful and error responses.
 
 ```
 
-### add a message to the queue
+### Add a message to the queue
 
 `http://localhost:8000/api/message/submit`
 
@@ -174,7 +174,7 @@ if the reader's message session could not be found.
 
 ### Clear all current messages
 
-`http://localhost:8000/api/message/delete`
+`http://localhost:8000/api/message/clear`
 
 This endpoint deletes the reader's current message session
 and permantly deletes all associated messages. 
