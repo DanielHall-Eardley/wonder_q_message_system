@@ -7,37 +7,30 @@
 - Run `node server.js`
 
 ## Task
-Design a queue based messaging system with a many to many relationship between producers that write the messages and consumers that read the messages. When a reader requests to get the newest messages they are sent all the messages from the queue, at this point all those messages are moved into a 'message session' unique to that reader and cannot be retrieved by other readers. The reader can mark an individual message to be permantly deleted from the database or clear all messages. If a reader does not take any action and a certain amount of time has transpired, all their messages are placed back into the start of the queue.
+Design a queue based messaging system with a many to many relationship between producers that write the messages and consumers that read the messages. When a reader requests to get messages, they are sent all the current messages from the queue, at this point all those messages are moved into a 'message session' unique to that reader and cannot be retrieved by other readers. The reader can mark an individual message to be permantly deleted from the database or clear all messages. If a reader does not take any action and a certain amount of time has transpired, all their unread messages are placed back into the start of the queue.
 
 ## Scalability ideas 
 
 - micro-service architecture
  
-- Seperate each message session into its own dedicated worker process responsible for keep track of the remaining expiration time and
+- Seperate each message session into its own dedicated worker process responsible for keeping track of the remaining expiration time and
 merging unread messages back into the main message queue. 
 
-- Seperate the main message queue on its own dedicated server
+- Seperate the main message queue in to its own dedicated server
 
-- Need a reliable database that can deal with a high volume of constant requests
+- Need a reliable database that can deal with a high volume of constant insertions and deletions
 
 ## React App
 
-This app will be responsible for generating messages, sending them to the server and allowing the consumer to request all the queued messages from the server.
+This app is responsible for generating messages, sending them to the server and allowing the consumer to request all the queued messages from the server.
 
 ## Node Server
 
-This server will be responsible for receiving the messages and placing them in a queue, sending messages from the queue, moving messages to a pending queue and deleting messages on read confirmation
-
-- Received messages are placed at the front of the queue array
-- When a message request occurs all messages are placed in a pending queue array and a timer is started
-
-- As messages are confirmed to be read they are removed from the pending queue array
-
-- Any messages left in the pending queue array after the timer finishes are placed back into the main queue.
+This server is responsible for receiving messages and placing them in a queue, moving messages to message sessions and deleting messages on confirmation and returning an individual reader's messages session.
 
 ## Chrome Extension
 
-### Build an extension to which shows:
+### This extension shows:
 
 - Total messages written
 
