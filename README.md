@@ -1,68 +1,67 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Wonder Technical Challenge
 
-## Available Scripts
+## Task
+Design a queue based messaging system with a many to many relationship between producers that write the messages and consumers that read the messages. When a reader requests to get the newest messages they are sent all the messages from the queue, at this point all those messages are moved into a 'message session' unique to that reader and cannot be retrieved by other readers. The reader can mark an individual message to be permantly deleted from the database or clear all messages. If a reader does not take any action and a certain amount of time has transpired, all their messages are placed back into the start of the queue.
 
-In the project directory, you can run:
+## Scalability ideas 
+ 
+- Batch “processed” confirmation calls, if the the amount of time allowed to read messages is known, the app can wait until the time is almost expired before collecting all messages that the user has read.
 
-### `npm start`
+## React App
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+This app will be responsible for generating messages, sending them to the server and allowing the consumer to request all the queued messages from the server.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## Node Server
 
-### `npm test`
+This server will be responsible for receiving the messages and placing them in a queue, sending messages from the queue, moving messages to a pending queue and deleting messages on read confirmation
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Received messages are placed at the front of the queue array
+- When a message request occurs all messages are placed in a pending queue array and a timer is started
 
-### `npm run build`
+- As messages are confirmed to be read they are removed from the pending queue array
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Any messages left in the pending queue array after the timer finishes are placed back into the main queue.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Chrome Extension
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Build an extension to which shows:
 
-### `npm run eject`
+- Total messages written
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Total messages currently unread
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Total messages currently being read
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- If the server is active
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## API documentation
 
-## Learn More
+### Retrieve an existing message session
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+`http://localhost:8000/api/message/pending/:id`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+This endpoint is for retrieving a reader's current message session. An example
+use case would be retrieving a reader's message after a page refresh.
 
-### Code Splitting
+**params**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+`id: String, A valid reader id`
 
-### Analyzing the Bundle Size
+**response**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+Below are examples of the response depending on if it finds a valid session
+for the given reader id.
+```
+{
+  message: "No current message session"
+}
 
-### Making a Progressive Web App
+{
+  session: {
+    expiration: "2020-08-02T19:38:01.826Z"
+    messages: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+    readerId: "78ec73bb-4363-454f-93d1-bfe07b4d2158"
+  }
+}
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
