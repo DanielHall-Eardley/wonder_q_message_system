@@ -18,9 +18,9 @@ router.get('/message/list/:id', createMessageSession)
 
 router.post('/message/submit', addMessage)
 
-router.post('/message/clear', endMessageSession)
+router.delete('/message/clear', endMessageSession)
 
-router.put('/message/process', processMessage)
+router.delete('/message/delete', processMessage)
 
 module.exports = router
 

@@ -8,7 +8,7 @@ export default ({setMessageList, readerId}) => {
     const body = {
       readerId
     }
-    const response = await api('message/clear/', body, 'POST')
+    const response = await api('message/clear/', body, 'DELETE')
     console.log(response.message)
     setMessageList([])
   }

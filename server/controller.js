@@ -27,12 +27,12 @@ const createMessageSession = async (req, res, next) => {
   try {
     const readerId = req.params.id
 
-    if (messageQueue.getQueueCount() < 1) {
-      throw new Error('No messages available')
-    }
-
     if (sessions.getSession(readerId)) {
       throw new Error('Please clear your current messages')
+    }
+
+    if (messageQueue.getQueueCount() < 1) {
+      throw new Error('No messages available')
     }
 
     const messages = messageQueue.getMessages()
@@ -57,45 +57,57 @@ const createMessageSession = async (req, res, next) => {
 
 //Add a message to the start of the queue
 const addMessage = async (req, res, next) => {
-  const message = new Message(req.body.content)
-  
-  messageQueue.addMessage(message)
-  const confirmationMsg = `Message sent! Confirmation ID: ${message.id}`
-  res.status(200).json({message: confirmationMsg})
+  try {
+    const message = new Message(req.body.content)
+    messageQueue.addMessage(message)
+    
+    const confirmationMsg = `Message sent! Confirmation ID: ${message.id}`
+    res.status(200).json({message: confirmationMsg})
+  } catch (error) {
+    next(error)
+  }
 }
 
 /*Remove an individual message from a reader's 
 current message session, if the resulting array of messages 
 is now empty, remove the entire session*/
 const processMessage = (req, res, next) => {
-  const readerId = req.body.readerId
-  const readerSession = sessions.getSession(readerId)
+  try {
+    const readerId = req.body.readerId
+    const readerSession = sessions.getSession(readerId)
 
-  if (!readerSession) {
-    res.status(404).json({messageList: []})
+    if (!readerSession) {
+      res.status(404).json({messageList: []})
+    }
+
+    readerSession.markMessageAsProcessed(req.body.messageId)
+    
+    const messageList = readerSession.messages
+
+    if (messageList.length < 1) {
+      sessions.removeSession(readerId)
+    }
+
+    res.status(200).json({messageList})
+  } catch (error) {
+    next(error)
   }
-
-  readerSession.markMessageAsProcessed(req.body.messageId)
-  
-  const messageList = readerSession.messages
-
-  if (messageList.length < 1) {
-    sessions.removeSession(readerId)
-  }
-
-  res.status(200).json({messageList})
 }
 
 //status update for the extension
 const getStatusUpdate = (req, res, next) => {
-  const status = {
-    active: 'active',
-    totalMessages: messageQueue.getMessageCount(),
-    totalReaders: sessions.getSessionCount(),
-    availableMessages: messageQueue.getQueueCount()
+  try {
+    const status = {
+      active: 'active',
+      totalMessages: messageQueue.getMessageCount(),
+      totalReaders: sessions.getSessionCount(),
+      availableMessages: messageQueue.getQueueCount()
+    }
+  
+    res.status(200).json({status})
+  } catch (error) {
+    next(error)
   }
-
-  res.status(200).json({status})
 }
 
 module.exports = {

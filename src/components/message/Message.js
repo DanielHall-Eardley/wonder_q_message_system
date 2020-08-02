@@ -12,7 +12,7 @@ export default ({message, setMessageList, readerId}) => {
       readerId
     }
     
-    const response = await api('message/process', body, 'PUT')
+    const response = await api('message/delete', body, 'DELETE')
     
     if (response.messageList) {
       setMessageList(response.messageList)
