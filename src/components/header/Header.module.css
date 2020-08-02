@@ -1,0 +1,9 @@
+.title {
+  text-align: center;
+  padding: var(--space-lg);
+  background-color: var(--charcoal);
+  color: var(--gold);
+  font-size: var(--font-lg);
+  font-weight: 200;
+  letter-spacing: 3px;
+}

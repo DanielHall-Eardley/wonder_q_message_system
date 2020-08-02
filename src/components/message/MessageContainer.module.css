@@ -1,0 +1,11 @@
+.btnContainer {
+  display: flex;
+}
+
+.btnContainer button{
+  flex: 1;
+}
+
+.btnContainer button:not(:last-child){
+  margin-right: var(--space-sm);
+}

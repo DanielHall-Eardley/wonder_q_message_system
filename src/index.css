@@ -11,3 +11,90 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/*global variables*/
+:root {
+  /*spacing*/
+  --space-sm: 1rem;
+  --space-md: 2.2rem;
+  --space-lg: 3rem;
+
+  /*font-sizing*/
+  --font-sm: 1.7rem;
+  --font-md: 2.2rem;
+  --font-lg: 3.4rem;
+
+  /*colors*/
+  --charcoal: #222831;
+  --blue: #30475E;
+  --gold: #F2A365;
+  --light-grey: #ECECEC;
+
+  /*borders*/
+  --dark-border: solid 1px var(--charcoal);
+  --light-border: solid 1px var(--gold);
+  --border-radius: .8rem;
+}
+
+html {
+  font-size: 62.25%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+main {
+  width: 100vw;
+  display: flex;
+}
+
+section {
+  flex: 1;
+  margin: var(--space-md);
+  border: var(--light-border);
+  border-radius: var(--border-radius);
+  padding: var(--space-md);
+}
+
+@media screen and (max-width: 45em) {
+  main {
+    flex-direction: column;
+  }
+
+  section:first-of-type {
+    margin-right: var(--space-md);
+    margin-bottom: 0;
+  }
+}
+
+button {
+  outline: none;
+  border: none;
+  background-color: var(--blue);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius);
+  color: var(--gold);
+  font-size: var(--font-sm);
+}
+
+button:hover {
+  background-color: var(--gold);
+  color: var(--charcoal);
+}
+
+p {
+  font-size: var(--font-md)
+}
+
+.notification {
+  margin-top: var(--space-sm);
+  font-size: var(--font-sm);
+  background-color: var(--light-grey);
+  color: var(--blue);
+  padding: var(--space-sm);
+  border-radius: var(--border-radius);
+}
+

@@ -1,0 +1,26 @@
+.formContainer {
+  margin-right: 0;
+}
+
+.formContainer form label {
+  display: block;
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-sm);
+  color: var(--charcoal);
+}
+
+.formContainer form textarea {
+  width: 100%;
+  height: 20rem;
+  border: none;
+  padding: var(--space-sm);
+  background-color: var(--light-grey);
+  border-radius: var(--border-radius);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.button {
+  display: block;
+  margin-top: var(--space-sm);
+}
