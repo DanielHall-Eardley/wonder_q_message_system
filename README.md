@@ -3,14 +3,22 @@
 ## Run
 
 - Clone the repo to your local machine
-- Run `node server.js` in the project directory
+- Navigate to the project directory in your terminal
+- Run `node server.js`
 
 ## Task
 Design a queue based messaging system with a many to many relationship between producers that write the messages and consumers that read the messages. When a reader requests to get the newest messages they are sent all the messages from the queue, at this point all those messages are moved into a 'message session' unique to that reader and cannot be retrieved by other readers. The reader can mark an individual message to be permantly deleted from the database or clear all messages. If a reader does not take any action and a certain amount of time has transpired, all their messages are placed back into the start of the queue.
 
 ## Scalability ideas 
+
+- micro-service architecture
  
-- Batch “processed” confirmation calls, if the the amount of time allowed to read messages is known, the app can wait until the time is almost expired before collecting all messages that the user has read.
+- Seperate each message session into its own dedicated worker process responsible for keep track of the remaining expiration time and
+merging unread messages back into the main message queue. 
+
+- Seperate the main message queue on its own dedicated server
+
+- Need a reliable database that can deal with a high volume of constant requests
 
 ## React App
 
