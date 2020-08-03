@@ -17,6 +17,10 @@ export default ({message, setMessageList, readerId}) => {
     if (response.messageList) {
       setMessageList(response.messageList)
     }
+
+    if (response.message) {
+      alert(response.message)
+    }
   }
 
   return (

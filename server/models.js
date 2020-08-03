@@ -41,6 +41,9 @@ class Sessions {
     return this.sessions[readerId]
   }
 
+  /*The sessions object is converted to an array of values,
+  each value is then checked for truthiness to confirm
+  the presence of a valid session*/
   getSessionCount() {
     let count = 0
     const objValues = Object.values(this.sessions)

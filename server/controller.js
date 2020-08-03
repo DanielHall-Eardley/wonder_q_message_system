@@ -6,6 +6,7 @@ const {differenceInMilliseconds} = require('date-fns')
 const getMessageSession = async (req, res, next) => {
   const readerId = req.params.id
   const readerSession = sessions.getSession(readerId)
+
   if (!readerSession) {
     return res.status(200).json({message: 'No current message session'})
   } 
@@ -13,6 +14,7 @@ const getMessageSession = async (req, res, next) => {
   res.status(200).json({session: readerSession})
 }
 
+//Clear the current message session for the logged in reader
 const endMessageSession = async (req, res, next) => {
   sessions.removeSession(req.body.readerId)
   res.status(200).json({message: 'Message session cleared'})
@@ -36,6 +38,7 @@ const createMessageSession = async (req, res, next) => {
     }
 
     const messages = messageQueue.getMessages()
+
     const readerSession = new MessageSession(readerId, messages, 5)
     sessions.addSession(readerSession)
     
@@ -57,57 +60,48 @@ const createMessageSession = async (req, res, next) => {
 
 //Add a message to the start of the queue
 const addMessage = async (req, res, next) => {
-  try {
-    const message = new Message(req.body.content)
-    messageQueue.addMessage(message)
-    
-    const confirmationMsg = `Message sent! Confirmation ID: ${message.id}`
-    res.status(200).json({message: confirmationMsg})
-  } catch (error) {
-    next(error)
-  }
+  const message = new Message(req.body.content)
+  messageQueue.addMessage(message)
+  
+  const confirmationMsg = `Message sent! Confirmation ID: ${message.id}`
+  res.status(200).json({message: confirmationMsg})
 }
 
 /*Remove an individual message from a reader's 
 current message session, if the resulting array of messages 
 is now empty, remove the entire session*/
 const processMessage = (req, res, next) => {
-  try {
-    const readerId = req.body.readerId
-    const readerSession = sessions.getSession(readerId)
+  const readerId = req.body.readerId
+  const readerSession = sessions.getSession(readerId)
 
-    if (!readerSession) {
-      res.status(404).json({messageList: []})
-    }
-
-    readerSession.markMessageAsProcessed(req.body.messageId)
-    
-    const messageList = readerSession.messages
-
-    if (messageList.length < 1) {
-      sessions.removeSession(readerId)
-    }
-
-    res.status(200).json({messageList})
-  } catch (error) {
-    next(error)
+  if (!readerSession) {
+    res.status(404).json({
+      messageList: [],
+      message: 'Message session expired'
+    })
   }
+
+  readerSession.markMessageAsProcessed(req.body.messageId)
+  
+  const messageList = readerSession.messages
+
+  if (messageList.length < 1) {
+    sessions.removeSession(readerId)
+  }
+
+  res.status(200).json({messageList})
 }
 
 //status update for the extension
 const getStatusUpdate = (req, res, next) => {
-  try {
-    const status = {
-      active: 'active',
-      totalMessages: messageQueue.getMessageCount(),
-      totalReaders: sessions.getSessionCount(),
-      availableMessages: messageQueue.getQueueCount()
-    }
-  
-    res.status(200).json({status})
-  } catch (error) {
-    next(error)
+  const status = {
+    active: 'active',
+    totalMessages: messageQueue.getMessageCount(),
+    totalReaders: sessions.getSessionCount(),
+    availableMessages: messageQueue.getQueueCount()
   }
+
+  res.status(200).json({status})
 }
 
 module.exports = {

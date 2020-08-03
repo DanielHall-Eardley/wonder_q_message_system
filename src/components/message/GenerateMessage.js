@@ -4,6 +4,7 @@ import api from '../../helper/api'
 
 export default () => {
   const [intervalId, setIntervalId] = useState(null)
+  const [content, setContent] = useState(null)
 
   //Get a random dad joke
   const getDadJoke = async () => {
@@ -47,8 +48,6 @@ export default () => {
   const submitMessage = async (event) => {
     event.preventDefault()
   
-    const content = document.querySelector('#message-content').value
-
     const body = {
       content
     }
@@ -67,7 +66,7 @@ export default () => {
     <section className={styles.formContainer}>
       <form onSubmit={submitMessage}>
         <label htmlFor="message-content">Write a message</label>
-        <textarea id="message-content"></textarea>
+        <textarea id="message-content" onInput={(event) => setContent(event.target.value)}></textarea>
         <button>Send</button>
       </form>
       <button onClick={startMsgGeneration} className={styles.button}>
